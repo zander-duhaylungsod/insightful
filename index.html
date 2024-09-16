@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection for Blind Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        #camera-stream {
+            width: 100%;
+            max-width: 600px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Object Detection</h1>
+    <video id="camera-stream" autoplay playsinline></video>
+    <button id="detect-btn">Detect Objects</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script>
+      // Access the camera
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          document.getElementById('camera-stream').srcObject = stream;
+        })
+        .catch((error) => {
+          console.error('Error accessing the camera:', error);
+        });
+
+      let modelLoaded = false;
+      let objectModel;
+
+      // Load the TensorFlow model
+      cocoSsd.load().then(model => {
+        objectModel = model;
+        modelLoaded = true;
+        console.log('Model Loaded');
+      });
+
+      // Detect objects when the button is pressed
+      document.getElementById('detect-btn').addEventListener('click', () => {
+        if (modelLoaded) {
+          objectModel.detect(document.getElementById('camera-stream')).then(predictions => {
+            if (predictions.length > 0) {
+              // Read out the first detected object's name
+              const objectName = predictions[0].class;
+              readObjectAloud(objectName);
+            } else {
+              readObjectAloud('No objects detected');
+            }
+          });
+        } else {
+          console.log('Model is still loading...');
+        }
+      });
+
+      // Text-to-Speech Function
+      function readObjectAloud(text) {
+        const speech = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(speech);
+      }
+    </script>
+</body>
+</html>
