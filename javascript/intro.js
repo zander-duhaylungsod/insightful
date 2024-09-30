@@ -4,7 +4,7 @@
     // // Add a delay of 2 seconds (2000 milliseconds)
     setTimeout(function() {
         readObjectAloud("Welcome to INSIGHTFUL! Press anywhere to start the app.");
-    }, 2000);
+    }, 500);
 // });
 
 document.addEventListener('click', function() {
