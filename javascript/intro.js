@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+//document.addEventListener('DOMContentLoaded', function() {
     var msg = new SpeechSynthesisUtterance();
     msg.text = "Welcome to INSIGHTFUL! Press anywhere to start the app.";
     // Add a delay of 2 seconds (2000 milliseconds)
     setTimeout(function() {
         window.speechSynthesis.speak(msg);
     }, 2000);
-});
+//});
 
 document.addEventListener('click', function() {
     var overlay = document.getElementById('overlay');
