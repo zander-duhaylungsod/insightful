@@ -6,7 +6,7 @@ const doubleTapTimeout = 300;  // Set a window of 300ms for double tap
 let mode = "object-detection";  // Default mode (start with object detection)
 setTimeout(function() {
     readObjectAloud("Object detection mode. Press anywhere to trigger the function. Swipe left or right to change mode.");
-}, 2000);
+}, 500);
 let isActionTriggered = false;  // Ensure action is only triggered on single tap
 let isObjectDetectionRunning = false;  // New flag to track object detection
 
