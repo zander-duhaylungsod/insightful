@@ -4,7 +4,7 @@
     // Add a delay of 2 seconds (2000 milliseconds)
     setTimeout(function() {
         window.speechSynthesis.speak(msg);
-    }, 2000);
+    }, 1000);
 //});
 
 document.addEventListener('click', function() {
