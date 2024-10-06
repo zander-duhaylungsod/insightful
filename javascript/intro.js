@@ -13,7 +13,7 @@ document.addEventListener('click', function() {
         }, 500);  // Match this duration with the CSS transition duration
     }
 }, { once: false });  // Ensure this can run multiple times
-});
+
 
 // Function to read out text via speech synthesis
 function readObjectAloud(text) {
