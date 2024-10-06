@@ -5,8 +5,8 @@ let lastTapTime = 0;
 const doubleTapTimeout = 300;  // Set a window of 300ms for double tap
 let mode = "object-detection";  // Default mode (start with object detection)
 setTimeout(function() {
-    readObjectAloud("Object detection mode. Press anywhere to trigger the function. Swipe left or right to change mode.");
-}, 500);
+    readObjectAloud("Object detection mode. Press once to trigger the function. Click the buttons, swipe, or use the pop-up menu to navigate.");
+}, 1400);
 let isActionTriggered = false;  // Ensure action is only triggered on single tap
 let isObjectDetectionRunning = false;  // New flag to track object detection
 
@@ -43,13 +43,13 @@ function objectDetection() {
     cocoSsd.load().then(model => {
         model.detect(document.getElementById('camera-stream')).then(predictions => {
             detectedObjects = predictions;
+            
             if (detectedObjects.length > 0) {
                 const objectName = detectedObjects[0].class;
                 readObjectAloud(objectName);
             } else {
                 readObjectAloud("No object detected");
             }
-
             isObjectDetectionRunning = false;  // Reset flag after detection completes
         }).catch(() => {
             isObjectDetectionRunning = false;  // Reset flag if an error occurs
@@ -170,13 +170,17 @@ function stopSpeech() {
 }
 
 // Handle screen taps or clicks to voice out the detected object or switch cameras
-document.body.addEventListener('click', () => {
+document.body.addEventListener('click', function(event){
+    if (isMenuOpen) return;  // Do nothing if the menu is open or the menu button was clicked
+    event.stopPropagation();
     const currentTime = new Date().getTime();
     const tapDuration = currentTime - lastTapTime;
 
     if (tapDuration < doubleTapTimeout && tapDuration > 0) {
         toggleCamera();  // Double-tap toggles camera
     } else {
+        stopSpeech();  // Stop any ongoing speech when action is triggered
+
         // Single tap triggers the selected mode action
         if (!isActionTriggered) {
             isActionTriggered = true;
@@ -219,50 +223,77 @@ function updateSelection(index) {
     });
 }
 
-//default fade out
-fadeOutChoice(2);  // Fade out the color detection box (index 2)
+document.addEventListener("DOMContentLoaded", function() {
+    // Default fade out & selection
+    updateSelection(0);
+    fadeOutChoice(2);
+});
+
 
 // Handle choice selection by click
 choices.forEach((choice, index) => {
-    choice.addEventListener('click', function() {
+    choice.addEventListener('click', function(event) {
+        event.stopPropagation();
         stopSpeech();  // Stop ongoing speech
 
         // Update the mode based on the clicked choice
         if (index === 0) {
             mode = "object-detection";
+            updatePopupMenu()
             fadeOutChoice(2);  // Fade out the color detection box (index 2)
         } else if (index === 1) {
             mode = "text-reader";
+            updatePopupMenu()
             fadeOutOtherChoices(1);
         } else if (index === 2) {
             mode = "color-detection";
+            updatePopupMenu()
             fadeOutChoice(0);  // Fade out the color detection box (index 2)
         }
 
         currentIndex = index;  // Update the current index
         updateSelection(currentIndex);  // Re-center the selection
-    });
+
+        stopSpeech();  // Stop any ongoing speech when switching modes
+
+        if (currentIndex === 0) {
+            readObjectAloud("Object detection mode");
+        } else if (currentIndex === 1) {
+            readObjectAloud("Text reader mode");
+        } else if (currentIndex === 2) {
+            readObjectAloud("Color detection mode");
+        }
+        });
 });
 
-// Swipe detection for cycling through choices
+
 let touchstartX = 0;
 let touchendX = 0;
+const minSwipeDistance = 30;  // Minimum distance for a swipe
 
 document.addEventListener('touchstart', function(event) {
     touchstartX = event.changedTouches[0].screenX;  // Start of swipe
+    console.log(touchstartX);
 });
 
 document.addEventListener('touchend', function(event) {
     touchendX = event.changedTouches[0].screenX;  // End of swipe
-    handleGesture();  // Handle the gesture
+    console.log(touchendX);
+    if (Math.abs(touchendX - touchstartX) > minSwipeDistance) {
+        handleGesture();  // Handle the gesture if it's a swipe
+    }
 });
+
 
 // Handle swipe gestures
 function handleGesture() {
+    if (isMenuOpen) return;  // Do nothing if the menu is open
+    
     if (touchendX < touchstartX) {
         // Swipe left to move to the next choice
         currentIndex = (currentIndex + 1) % choices.length;
     }
+
     if (touchendX > touchstartX) {
         // Swipe right to move to the previous choice
         currentIndex = (currentIndex - 1 + choices.length) % choices.length;
@@ -273,12 +304,15 @@ function handleGesture() {
     // Update the mode based on the new index
     if (currentIndex === 0) {
         mode = "object-detection";
+        updatePopupMenu()
         fadeOutChoice(2);  // Fade out the color detection box (index 2)
     } else if (currentIndex === 1) {
         mode = "text-reader";
+        updatePopupMenu()
         fadeOutOtherChoices(1);
     } else if (currentIndex === 2) {
         mode = "color-detection";
+        updatePopupMenu()
         fadeOutChoice(0);  // Fade out the color detection box (index 2)
     }
 
@@ -291,6 +325,85 @@ function handleGesture() {
     } else if (currentIndex === 2) {
         readObjectAloud("Color detection mode");
     }
+}
+
+//-----------
+
+// Ensure pop-up menu starts hidden
+document.getElementById('popup-menu').classList.add('hidden');
+
+let isMenuOpen = false;  // Track whether the menu is open
+// Update the menu button click handler to toggle the flag
+document.getElementById('menu-btn').addEventListener('click', function(event) {
+    event.stopPropagation();
+    const popupMenu = document.getElementById('popup-menu');
+    popupMenu.classList.toggle('hidden');  // Toggle visibility
+    isMenuOpen = !popupMenu.classList.contains('hidden');  // Update the flag
+});
+
+// Close menu when user clicks outside the menu
+document.addEventListener('click', (event) => {
+    const popupMenu = document.getElementById('popup-menu');
+    if (!popupMenu.contains(event.target) && !event.target.matches('#menu-btn')) {
+        popupMenu.classList.add('hidden');  // Close menu if clicked outside
+        isMenuOpen = false;  // Ensure the flag is updated
+    }
+});
+
+// Handle mode selection from the pop-up menu
+document.querySelectorAll('.popup-choice').forEach((choice, index) => {
+    choice.addEventListener('click', function(event) {
+        event.stopPropagation();
+        resetChoiceVisibility();
+        
+        // Update the mode based on user selection
+        if (index === 0) {
+            mode = "object-detection";
+            fadeOutChoice(2);
+        } else if (index === 1) {
+            mode = "text-reader";
+            fadeOutOtherChoices(1);
+        } else if (index === 2) {
+            mode = "color-detection";
+            fadeOutChoice(0);
+        }
+        
+        stopSpeech();  // Stop any ongoing speech when switching modes
+        updatePopupMenu();  // Sync with pop-up menu
+        updateSelection(index);  // Update the choices below
+        readObjectAloud(choice.textContent.trim());
+
+        document.getElementById('popup-menu').classList.add('hidden');  // Close pop-up menu
+    });
+});
+
+// Update pop-up menu to highlight the current mode
+function updatePopupMenu() {
+    document.querySelectorAll('.popup-choice').forEach(choice => {
+        choice.classList.remove('active');
+    });
+
+    if (mode === "object-detection") {
+        document.getElementById('popup-object-detection').classList.add('active');
+    } else if (mode === "text-reader") {
+        document.getElementById('popup-text-reader').classList.add('active');
+    } else if (mode === "color-detection") {
+        document.getElementById('popup-color-detection').classList.add('active');
+    }
+}
+
+// Update the appearance of the choices
+function updateSelection(index) {
+    choices.forEach((choice, i) => {
+        choice.classList.remove('left', 'right', 'selected');
+        if (i === index) {
+            choice.classList.add('selected');  // Highlight the current choice
+        } else if (i < index) {
+            choice.classList.add('left');  // Move previous choices to the left
+        } else if (i > index) {
+            choice.classList.add('right');  // Move future choices to the right
+        }
+    });
 }
 
 // Fade out a specific choice by setting its opacity to 0
@@ -320,7 +433,7 @@ function fadeOutOtherChoices(selectedIndex) {
             choice.style.pointerEvents = 'auto';  // Allow interaction with the selected choice
         } else {
             choice.style.opacity = 0.3;  // Fade out the non-selected choices
-            choice.style.pointerEvents = 'none';  // Disable interaction with non-selected choices
+            choice.style.pointerEvents = 'auto';
         }
     });
 }
@@ -333,8 +446,18 @@ function resetChoiceVisibility() {
     });
 }
 
-// Start the camera with the default back camera (environment mode)
-startCamera('environment');
 
 // Initial setup to center the first choice
 updateSelection(currentIndex);
+
+
+// Reset the formatting of all choices
+function resetChoicesFormatting() {
+    choices.forEach((choice) => {
+        choice.style.opacity = 1;  // Reset opacity
+        choice.style.pointerEvents = 'auto';  // Enable interaction
+    });
+}
+
+// Start the app with the camera and choices initialized
+startCamera('environment');
