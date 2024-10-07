@@ -148,15 +148,54 @@ function detectDominantColor(data) {
     return rgbToColorName(r, g, b);
 }
 
-function rgbToColorName(r, g, b) {
-    if (r > 200 && g < 100 && b < 100) return 'Red';
-    if (r < 100 && g > 200 && b < 100) return 'Green';
-    if (r < 100 && g < 100 && b > 200) return 'Blue';
-    if (r > 200 && g > 200 && b < 100) return 'Yellow';
-    if (r > 200 && g > 200 && b > 200) return 'White';
-    if (r < 50 && g < 50 && b < 50) return 'Black';
-    return 'Unknown Color';
+// Convert RGB to HSL
+function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    
+    if (max === min) {
+        h = s = 0; // achromatic
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
 }
+
+// Improved color detection logic using both RGB and HSL
+function rgbToColorName(r, g, b) {
+    const [h, s, l] = rgbToHsl(r, g, b);
+
+    if (s < 15 && l > 85) return 'White';  // Low saturation and high lightness
+    if (s < 20 && l < 15) return 'Black';  // Low saturation and low lightness
+    if (s < 25 && l >= 15 && l <= 85) return 'Gray';  // Low saturation and mid-range lightness
+    
+    // Define color ranges using both HSL and RGB
+    if (r > 200 && g < 100 && b < 100 && h < 15) return 'Red';
+    if (h >= 15 && h <= 45 && l >= 40) return 'Orange';
+    if (h > 45 && h <= 65 && s > 50) return 'Yellow';
+    if (h > 65 && h <= 150 && g > r && g > b) return 'Green';
+    if (h > 150 && h <= 240 && b > r && b > g) return 'Blue';
+    if (h > 240 && h <= 280 && r > g && b > g) return 'Purple';
+    if (h > 280 && h <= 330 && r > b && r > g) return 'Pink';
+    
+    if (r > 150 && g > 150 && b < 100) return 'Light Yellow';
+    if (r < 100 && g > 150 && b < 100) return 'Light Green';
+    if (r < 100 && g < 100 && b > 150) return 'Light Blue';
+
+    return 'Unknown Color';  // Default if no color match is found
+}
+
 
 // Function to read out text via speech synthesis
 function readObjectAloud(text) {
