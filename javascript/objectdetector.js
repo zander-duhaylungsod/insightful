@@ -74,21 +74,6 @@ async function initializeWorker() {
     });
 }
 
-// Enhance the image before sending it for OCR
-function enhanceImageForOCR(context, width, height) {
-    const imageData = context.getImageData(0, 0, width, height);
-    const data = imageData.data;
-
-    // Basic contrast adjustment: increase the difference between bright and dark areas
-    for (let i = 0; i < data.length; i += 4) {
-        data[i] = data[i] * 1.2;      // Red
-        data[i + 1] = data[i + 1] * 1.2;  // Green
-        data[i + 2] = data[i + 2] * 1.2;  // Blue
-    }
-
-    // Apply the adjusted image back to the canvas
-    context.putImageData(imageData, 0, 0);
-}
 
 // Main function to handle text reading using OCR
 async function textReader() {
@@ -103,9 +88,6 @@ async function textReader() {
 
     // Draw the current video frame onto the canvas
     context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-
-    // Enhance the image for better OCR accuracy
-    enhanceImageForOCR(context, canvas.width, canvas.height);
 
     // Debug: Create an image from the canvas for manual inspection (optional)
     const imgDataUrl = canvas.toDataURL('image/png');
