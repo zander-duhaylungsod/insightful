@@ -57,26 +57,8 @@ function objectDetection() {
     });
 }
 
-// Create and configure the Tesseract worker
-const worker = Tesseract.createWorker({
-    logger: m => console.log(m), // Optionally log progress
-});
-
-// Initialize the worker and load language
-async function initializeWorker() {
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-
-    // Optionally whitelist characters for accuracy
-    await worker.setParameters({
-        tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.!?',
-    });
-}
-
-
-// Main function to handle text reading using OCR
-async function textReader() {
+// Text reading logic using OCR
+function textReader() {
     // Check if the mode is still 'text-reader' before proceeding
     if (mode !== "text-reader") return;
 
@@ -85,7 +67,7 @@ async function textReader() {
     const context = canvas.getContext('2d');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
-
+    
     // Draw the current video frame onto the canvas
     context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
@@ -94,40 +76,41 @@ async function textReader() {
     console.log("Captured image from canvas:", imgDataUrl);  // You can open this URL in a browser to inspect
 
     // Perform OCR on the canvas image
-    const { data: { text } } = await worker.recognize(canvas);
+    Tesseract.recognize(canvas, 'eng')
+        .then(result => {
+            console.log("Raw OCR result:", result);  // Log raw OCR result for debugging
 
-    console.log("Raw OCR result:", text);  // Log raw OCR result for debugging
+            const detectedText = result.data.text.trim();
+            
+            // Filter and clean up the detected text
+            const cleanedText = cleanText(detectedText);
 
-    const cleanedText = cleanText(text);
-
-    if (cleanedText) {
-        console.log("Cleaned text:", cleanedText);  // Log cleaned text for debugging
-        readObjectAloud(`Detected text: ${cleanedText}`);
-    } else {
-        console.log("No valid text detected");
-        readObjectAloud("No valid text detected");
-    }
+            if (cleanedText) {
+                console.log("Cleaned text:", cleanedText);  // Log cleaned text for debugging
+                readObjectAloud(`Detected text: ${cleanedText}`);
+            } else {
+                console.log("No valid text detected");  // Log if no valid text is detected
+                readObjectAloud("No valid text detected");
+            }
+        })
+        .catch(err => {
+            console.error('Error with OCR:', err);
+            readObjectAloud("Error reading text");
+        });
 }
+
 
 // Clean and filter the detected text to avoid random characters
 function cleanText(text) {
-    // Remove only non-ASCII characters and non-printable characters
-    const cleanedText = text.replace(/[^\x20-\x7E]/g, '').trim(); // Less aggressive cleaning
-
+    // Remove any random symbols or unwanted characters
+    const cleanedText = text.replace(/[^a-zA-Z0-9\s,.!?]/g, '').trim();
+    
     // Check if the cleaned text has a minimum length to be considered valid
     if (cleanedText.length > 2) {
         return cleanedText;
     }
     
     return "";  // Return an empty string if the text is too short
-}
-
-// Call this function when your app starts to initialize the Tesseract worker
-initializeWorker();
-
-// Make sure to terminate the worker when it's no longer needed to save resources
-async function terminateWorker() {
-    await worker.terminate();
 }
 
 // Color detection logic
