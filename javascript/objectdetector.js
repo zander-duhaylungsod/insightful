@@ -68,6 +68,11 @@ async function initWorker() {
     await worker.load();
     await worker.loadLanguage('eng');
     await worker.initialize('eng');
+
+    // Optionally whitelist characters for accuracy
+    await worker.setParameters({
+        tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.!?',
+    });
 }
 
 // Use the worker for OCR
