@@ -68,11 +68,6 @@ async function initWorker() {
     await worker.load();
     await worker.loadLanguage('eng');
     await worker.initialize('eng');
-
-    // Optionally whitelist characters for accuracy
-    await worker.setParameters({
-        tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.!?',
-    });
 }
 
 // Use the worker for OCR
@@ -126,7 +121,7 @@ function convertToGrayscale(imageData) {
 // Clean and filter the detected text to avoid random characters
 function cleanText(text) {
     // Remove any random symbols or unwanted characters
-    const cleanedText = text.replace(/[^a-zA-Z0-9\s,.!?]/g, '').trim();
+    const cleanedText = text.replace(/[^\x20-\x7E]/g, '').trim(); // Less aggressive cleaning
     
     // Check if the cleaned text has a minimum length to be considered valid
     if (cleanedText.length > 2) {
