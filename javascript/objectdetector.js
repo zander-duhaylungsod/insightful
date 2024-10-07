@@ -58,7 +58,20 @@ function objectDetection() {
 }
 
 
-function textReader() {
+// Create a global worker to reuse across calls
+const worker = Tesseract.createWorker({
+    logger: info => console.log(info), // Log progress for debugging
+});
+
+// Initialize the worker at the start
+async function initWorker() {
+    await worker.load();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+}
+
+// Use the worker for OCR
+async function textReader() {
     if (mode !== "text-reader") return;
 
     const videoElement = document.getElementById('camera-stream');
@@ -66,35 +79,31 @@ function textReader() {
     const context = canvas.getContext('2d');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
+    
+    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-    // Downscale the video frame for faster OCR (optional)
-    const scaleFactor = 0.5; // Scale down to 50% size (adjust as needed)
+    // Downscale and preprocess (same as before)
+    const scaleFactor = 0.5;
     canvas.width *= scaleFactor;
     canvas.height *= scaleFactor;
 
-    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-
-    // Convert to grayscale to speed up OCR
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const grayscaleData = convertToGrayscale(imageData);
     context.putImageData(grayscaleData, 0, 0);
 
-    // Perform OCR on the canvas image
-    Tesseract.recognize(canvas, 'eng')
-        .then(result => {
-            const detectedText = result.data.text.trim();
-            const cleanedText = cleanText(detectedText);
-            if (cleanedText) {
-                readObjectAloud(`Detected text: ${cleanedText}`);
-            } else {
-                readObjectAloud("No valid text detected");
-            }
-        })
-        .catch(err => {
-            console.error('Error with OCR:', err);
-            readObjectAloud("Error reading text");
-        });
+    // Use the initialized worker to perform OCR
+    const { data: { text } } = await worker.recognize(canvas);
+    const cleanedText = cleanText(text.trim());
+
+    if (cleanedText) {
+        readObjectAloud(`Detected text: ${cleanedText}`);
+    } else {
+        readObjectAloud("No valid text detected");
+    }
 }
+
+// Call this once when your app starts
+initWorker();
 
 function convertToGrayscale(imageData) {
     const data = imageData.data;
