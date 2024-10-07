@@ -58,9 +58,7 @@ function objectDetection() {
 }
 
 
-// Text reading logic using OCR
 function textReader() {
-    // Check if the mode is still 'text-reader' before proceeding
     if (mode !== "text-reader") return;
 
     const videoElement = document.getElementById('camera-stream');
@@ -68,29 +66,27 @@ function textReader() {
     const context = canvas.getContext('2d');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
-    
-    // Draw the current video frame onto the canvas
+
+    // Downscale the video frame for faster OCR (optional)
+    const scaleFactor = 0.5; // Scale down to 50% size (adjust as needed)
+    canvas.width *= scaleFactor;
+    canvas.height *= scaleFactor;
+
     context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-    // Debug: Create an image from the canvas for manual inspection (optional)
-    const imgDataUrl = canvas.toDataURL('image/png');
-    console.log("Captured image from canvas:", imgDataUrl);  // You can open this URL in a browser to inspect
+    // Convert to grayscale to speed up OCR
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const grayscaleData = convertToGrayscale(imageData);
+    context.putImageData(grayscaleData, 0, 0);
 
     // Perform OCR on the canvas image
     Tesseract.recognize(canvas, 'eng')
         .then(result => {
-            console.log("Raw OCR result:", result);  // Log raw OCR result for debugging
-
             const detectedText = result.data.text.trim();
-            
-            // Filter and clean up the detected text
             const cleanedText = cleanText(detectedText);
-
             if (cleanedText) {
-                console.log("Cleaned text:", cleanedText);  // Log cleaned text for debugging
                 readObjectAloud(`Detected text: ${cleanedText}`);
             } else {
-                console.log("No valid text detected");  // Log if no valid text is detected
                 readObjectAloud("No valid text detected");
             }
         })
@@ -99,6 +95,18 @@ function textReader() {
             readObjectAloud("Error reading text");
         });
 }
+
+function convertToGrayscale(imageData) {
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        data[i] = avg;     // Red channel
+        data[i + 1] = avg; // Green channel
+        data[i + 2] = avg; // Blue channel
+    }
+    return imageData;
+}
+
 
 
 // Clean and filter the detected text to avoid random characters
