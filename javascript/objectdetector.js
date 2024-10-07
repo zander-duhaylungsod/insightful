@@ -186,6 +186,7 @@ document.body.addEventListener('click', function(event){
             isActionTriggered = true;
 
             stopSpeech();  // Stop any ongoing speech when action is triggered
+            readObjectAloud("Analyzing, please wait.")
 
             // Trigger the appropriate action based on the mode
             if (mode === "object-detection") {
