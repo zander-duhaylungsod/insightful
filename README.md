@@ -1,6 +1,6 @@
 # **INSIGHTFUL:  Real-Time Object Detection, Text-Reader, and Color Recognition for the Visually Impaired Prototype**
 
-Our project is an innovative mobile application aimed at assisting visually impaired users in navigating the physical world. It offers three intuitive interaction methods: an icon-based interface, a gesture-based interface, and a pop-up menu. These features empower users to detect objects, read text, and identify colors through their phone's camera. This multi-faceted design enhances flexibility and accessibility, catering to users with diverse levels of vision impairment and ensuring a seamless user experience.
+This project is an innovative mobile application aimed at assisting visually impaired users in navigating the physical world. It offers three intuitive interaction methods: an icon-based interface, a gesture-based interface, and a pop-up menu. These features empower users to detect objects, read text, and identify colors through their phone's camera. This multi-faceted design enhances flexibility and accessibility, catering to users with diverse levels of vision impairment and ensuring a seamless user experience.
 
 ## Table of Contents
 
