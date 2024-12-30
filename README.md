@@ -1,4 +1,3 @@
-
 # **INSIGHTFUL:  Real-Time Object Detection, Text-Reader, and Color Recognition for the Visually Impaired Prototype**
 
 Our project is an innovative mobile application aimed at assisting visually impaired users in navigating the physical world. It offers three intuitive interaction methods: an icon-based interface, a gesture-based interface, and a pop-up menu. These features empower users to detect objects, read text, and identify colors through their phone's camera. This multi-faceted design enhances flexibility and accessibility, catering to users with diverse levels of vision impairment and ensuring a seamless user experience.
@@ -8,6 +7,8 @@ Our project is an innovative mobile application aimed at assisting visually impa
 - [Installation](#installation)
 - [Usage](#usage)
 - [Features](#features)
+- [Deployment](#deployment)
+
 
 ## Installation
 
@@ -36,3 +37,7 @@ Our project is an innovative mobile application aimed at assisting visually impa
 - **Text Reader**: Read text from images captured by the camera using Tesseract.js.
 - **Color Detection**: Identify the dominant color in the camera's view.
 
+## Deployment
+The application is deployed using GitHub Pages and can be accessed at the following URL:
+
+[https://zander-duhaylungsod.github.io/insightful/](https://zander-duhaylungsod.github.io/insightful/)
