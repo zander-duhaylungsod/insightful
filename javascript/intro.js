@@ -9,7 +9,7 @@ document.addEventListener('click', function() {
         var overlay = document.getElementById('overlay');
         overlay.classList.add('expand');
         setTimeout(function() {
-            window.location.href = 'objectdetector.html';
+            window.location.href = 'detectorPage.html';
         }, 500);  // Match this duration with the CSS transition duration
     }
 }, { once: false });  // Ensure this can run multiple times
